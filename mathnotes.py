@@ -1,6 +1,7 @@
 import random
 
 debug = True
+context = []
 
 def withRepsExercise():
     nLowerBound = 2
@@ -77,7 +78,7 @@ def withNoReps(option):
         input(".")
     return ""
 
-def permutations():
+def permutations(args):
     '''Module for permutations'''
     print("There are two types of repetition")
     print("Repeition allowed, and no repetition")
@@ -88,11 +89,11 @@ def permutations():
 ###START MAIN PROGRAM###
 applicationName = "Math Reviewer(Title WIP)"
 versionNum = "v0.1"
-welcomeMessage = "Hello and welcome to the %s %s written by James Ellerbee, this application aims to help you review selected math topics" % (applicationName, versionNum)
+welcomeMessage = "Hello and welcome to the %s %s written by James Ellerbee,\n this application aims to help you review selected math topics" % (applicationName, versionNum)
 
-topics = [
-    "Permutations",
-    ]
+topics = {
+    "Permutations": "A more detailed message about permutations, may inlcude flags the module take",
+}
 
 def printAvailableTopics():
     for topic in topics:
@@ -104,53 +105,132 @@ def printWelcome():
     print("the current offered topics are:")
     printAvailableTopics()
 
-def printMenu():
+def printMenu(args):
     '''outputs the menu options'''
-    print("Enter the number that corresponds to the topic you wish to visit:")
-    for i in range(len(topics)):
-        print("%d for %s," % (i+1, topics[i]))
+    print("Enter: 'menu' to print menu again.")
+    print("'view topics' to print the available topics to visit.")
+    print("'help' to print the available list of commands, \ntype 'help <command>' to view more information about a given command.")
+    print("'quit' to quit the application.")
     print()
-    print("enter 'menu' to print menu again")
-    print("enter 'help' to print the available list of commands")
-    print("enter 'quit' to quit the application")
 
 def printHelp(args):
     '''Prints the help information'''
-    global menuDict
-    '''print help menu'''
-    for key in menuDict:
-        print(key +":", menuDict[key].__doc__)
-    input(".")
-
-def programQuit():
+    global mainMenuDict
+    global topics
+    if len(args) > 1:
+        print("unexpected argument!")
+        return None
+    elif len(args) == 0:
+        for key in mainMenuDict:
+            print(key +":", mainMenuDict[key][0].__doc__)
+    else:
+        if args[0] in mainMenuDict:
+            print(mainMenuDict[args[0]][1])
+            
+def programQuit(args): #call to function object
     '''Exits the application'''
-    print("Goodbye!")
-    quit()
+    if len(args) > 1:
+        print("Invaild number of arguments")
+        return None
+    ui = ''
+    if len(args) == 1:
+        if args[0] == 'y':
+            ui = "y"
+        else:
+            print("No such argument '%s'" % args[0])
+            return None
+    else:
+        if ui == "":
+            ui = input("are you sure you want to quit? [y/n]")
+    if ui != "n":
+        print("Goodbye!")
+        quit()
+    else:
+        return None
 
-# Expand this when adding functionality to the program!!!
-menuDict = {
-    "1": permutations,
+def printView(args):
+    '''Prints the topics in the program'''
+    global topics
+    if len(args) > 1:
+        print("Invaild number of arguments")
+    elif len(args) == 1:
+        if args[0] == "topics":
+            for topic in topics:
+                print("%s, " % topic)
+        if args[0] == "menu":
+            printMenu()
+    elif len(args) == 0:
+        print("view what?")       
+
+def goBack(args):
+    global topicMenuDict
+    print("moving back one menu")
+    topicMenuDict["back"][2] = True
+
+
+
+topicMenuDict = {
+    "menu": [printMenu("topic"),
+            "print this menu for this sub menu"
+            ],
+    "back": [goBack, 
+            "Use this command to move back to previous menu, there are no available arguments",
+            False,
+            ],
+}
+
+def topicSubMenu(args):
+    '''Sub menu for math topics'''
+    print("You are now in the topics submenu")
+    ui = ''
+    while not topicMenuDict["back"][2]:
+        ui = input("/main/topic/ > ")
+        if ui != "":
+            ui = ui.split(" ")
+        if ui == "":
+            continue
+        elif ui[0] in topicMenuDict:
+            topicMenuDict[ui[0]][0](ui[1:])
+        
+        else:
+            print("Invaild input, please try again.")
+
+def goToMenu(args):
+    '''calls the respected submenu'''
+    if args[0] == "topics":
+        topicSubMenu(args)
+
+# Expand this dictonary when adding functionality to the program!!!
+    #"1": permutations,
     #...
     #"n" : functionForN
-    "help": printHelp,
-    "quit": programQuit,
+mainMenuDict = {
+    "view": [printView, 
+            "Use this command to view a given argument,\nvaild arguments:\n\t'topics' to display all the topics this application includes\n\t'menu' to view the commands for this menu",
+            ],
+    "menu": [goToMenu, 
+            "Use this command to move to a different menu,\nvaild arguemnts:\n\t'topics' to move to the topics submenu"
+            ],
+    "help": [printHelp, 
+            "You've just used the help command to recursively get help for help.\nUsage: 'help <command>' to view more information about a command"
+            ],
+    "quit": [programQuit, 
+            "Use this command to quit the application,\nvaild arguments:\n\t'y' to auto yes on quit"
+            ],
 }
 
 def main():
     printWelcome()
-    printMenu()
+    printMenu("")
     ui = ''
     while True:
-        ui = input("> ")
-        if debug:
-            if ui != "":
-                ui = ui.split(' ')
-        if ui in menuDict:
-            menuDict[ui]() #call to function object
-        elif ui == "":
+        ui = input("/main/ > ")
+        if ui != "":
+            ui = ui.split(' ')
+        if ui == "":
             continue
+        elif ui[0] in mainMenuDict:
+            mainMenuDict[ui[0]][0](ui[1:])
         else:
             print("Invaild input, please try again\n")
-            input(".")
-
 main() #call to main 
